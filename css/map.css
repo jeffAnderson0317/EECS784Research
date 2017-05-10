@@ -1,0 +1,28 @@
+#map {
+    height: 100%;
+    width:65%
+}
+html, body {
+    height: 80%;
+    margin: 10;
+    padding: 10;
+}
+
+.bar-info {
+    color: #fff;
+    white-space: nowrap;
+    border-radius: .25em;
+    background: #337ab7;
+}
+
+.bar-label {
+    padding-left: 10px;
+}
+
+h4.bar-label {
+    padding-bottom: 10px;
+}
+
+h2.bar-label {
+    padding-top: 10px;
+}
