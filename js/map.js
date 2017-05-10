@@ -28,29 +28,26 @@ function initMap() {
 }
 
 function FindLinks(results, map){
-    // earth's radius in km = ~6371
-    var radius = 6371;
     var maxLinks = 0;
     var minLinks = 10;
     var totalLinks = 0;
     var isLink = true;
-    var strokeColor = "#ff0000";
-    for(var i = 0; i < results.length-1; i++){
+    for(var i = 0; i < results.length; i++){
         results[i].Links = [];
 
         if (results[i].Lat == null || results[i].Lng == null)  
             break;
 
-        for (var j = i + 1; j < results.length; j++){
+        for (var j = 0; j < results.length; j++){
             if (i == j || results[j].Lat == null || results[j].Lng == null)
                 continue;
             isLink = true;
             var pointOne = ConvertToCartesian(results[i].Lat,results[i].Lng);
             var pointTwo = ConvertToCartesian(results[j].Lat,results[j].Lng);
             var midpoint = MidPointCartesian(pointOne.x, pointOne.y,pointTwo.x,pointTwo.y);
-            //var dist = DistanceCartesian(midpoint.x, midpoint.y, pointTwo.x, pointTwo.y);
+            var dist = DistanceCartesian(midpoint.x, midpoint.y, pointTwo.x, pointTwo.y);
             var midpointLatLon = ConvertToLatLon(midpoint.x,midpoint.y);
-            var dist = distance(midpointLatLon.lat, midpointLatLon.lng, results[j].Lat, results[j].Lng, 'M');
+            var newestDist = distance(midpointLatLon.lat, midpointLatLon.lng, results[j].Lat, results[j].Lng, 'K') * 1000;
 
             var lon1 = midpoint.y - dist;
             var lon2 = midpoint.y + dist;
@@ -61,10 +58,10 @@ function FindLinks(results, map){
                 if (results[i] == results[k] || results[j] == results[k] || results[k].Lat == null || results[k].Lng == null)
                     continue;
                 var pointThree = ConvertToCartesian(results[k].Lat, results[k].Lng);
-                let lat3 = results[k].Lat;
-                let lng3 = results[k].Lng;
-                var newDist = distance(midpoint.lat,midpoint.lng, lat3, lng3,'M');
-                //var newDist = DistanceCartesian(midpoint.x,midpoint.y, pointThree.x, pointThree.y);
+                //let lat3 = results[k].Lat;
+                //let lng3 = results[k].Lng;
+                //var newDist = distance(midpoint.lat,midpoint.lng, lat3, lng3,'M');
+                var newDist = DistanceCartesian(midpoint.x,midpoint.y, pointThree.x, pointThree.y);
 
                 if( pointThree.x < lat2 && pointThree.x > lat1 && pointThree.y < lon2 && pointThree.y > lon1 && newDist < dist ){
                     isLink = false;
@@ -76,35 +73,14 @@ function FindLinks(results, map){
                 results[i].Links.push({ lat: results[j].Lat, lng: results[j].Lng });            
                 var position = { lat: results[i].Lat, lng: results[i].Lng };
                 var positionTwo = {lat: results[j].Lat, lng: results[j].Lng };
-                var newLink = new google.maps.Polyline({
-                                path: [position, positionTwo],
-                                strokeColor: strokeColor,
-                                strokeOpacity: 1.0,
-                                strokeWeight: 2,
-                });
-                var marker = new google.maps.Marker({
-                    map: map,
-                    position: midpointLatLon,
-                    title: results[i].City + "," + results[i].State,
-                    icon: {
-                            path: google.maps.SymbolPath.CIRCLE,
-                            strokeColor: '#000',
-                            strokeWeight: 1,
-                            fillColor: strokeColor,
-                            fillOpacity: 1,
-                            scale: 3
-                    }
-                });
-                var cityCircle = new google.maps.Circle({
-                    strokeColor: '#FF0000',
-                    strokeOpacity: 0.8,
-                    strokeWeight: 2,
-                    fillColor: '#FF0000',
-                    fillOpacity: 0.35,
-                    map: map,
-                    center: midpointLatLon,
-                    radius: dist
-                });
+
+                var newLink = CreateLink(position, positionTwo);
+
+                //Use next two for testing
+                if (i == (results.length - 1)){
+                    //var marker = CreateMarker(midpointLatLon, results[i], map);
+                    //var cityCircle = DrawCircle(midpointLatLon, newestDist, map); 
+                }
 
                 newLink.setMap(map);
             }
@@ -127,23 +103,10 @@ function FindLinks(results, map){
 }
 
 function SetMarkers(results, myLatLng, map){
-    for(var i = 0; i < results.length-1; i++){
+    for(var i = 0; i < results.length; i++){
         var position = { lat: results[i].Lat, lng: results[i].Lng };
-        var positionTwo = { lat: results[i+1].Lat, lng: results[i+1].Lng };
         var strokeColor = "#ff0000";
-        var marker = new google.maps.Marker({
-            map: map,
-            position: position,
-            title: results[i].City + "," + results[i].State,
-            icon: {
-					path: google.maps.SymbolPath.CIRCLE,
-					strokeColor: '#000',
-					strokeWeight: 1,
-					fillColor: strokeColor,
-					fillOpacity: 1,
-					scale: 3
-            }
-        });
+        var marker = CreateMarker(position, results[i], map);
 
         var contentString = '<div></div>'
 
@@ -153,6 +116,46 @@ function SetMarkers(results, myLatLng, map){
         
         WindowBind(marker, map, infowindow, contentString, position);
     }
+}
+
+function CreateMarker(position, result, map){
+    var marker = new google.maps.Marker({
+            map: map,
+            position: position,
+            title: result.City + "," + result.State,
+            icon: {
+					path: google.maps.SymbolPath.CIRCLE,
+					strokeColor: '#000',
+					strokeWeight: 1,
+					fillColor: '#FF0000',
+					fillOpacity: 1,
+					scale: 3
+            }
+    });
+    return marker;
+}
+
+function CreateLink(position, positionTwo){
+    var link = new google.maps.Polyline({
+        path: [position, positionTwo],
+        strokeColor: '#FF0000',
+        strokeOpacity: 1.0,
+        strokeWeight: 2,
+    });
+    return link;
+}
+
+function DrawCircle(center, dist, map){
+    var circle = new google.maps.Circle({
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: '#FF0000',
+        fillOpacity: 0.35,
+        map: map,
+        center: center,
+        radius: dist
+    });
 }
 
 function DegreesToRadians(degrees){
