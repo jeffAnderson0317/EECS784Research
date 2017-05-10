@@ -77,10 +77,8 @@ function FindLinks(results, map){
                 var newLink = CreateLink(position, positionTwo);
 
                 //Use next two for testing
-                if (i == (results.length - 1)){
-                    //var marker = CreateMarker(midpointLatLon, results[i], map);
-                    //var cityCircle = DrawCircle(midpointLatLon, newestDist, map); 
-                }
+                //var marker = CreateMarker(midpointLatLon, results[i], map);
+                //var cityCircle = DrawCircle(midpointLatLon, newestDist, map); 
 
                 newLink.setMap(map);
             }
